@@ -1,0 +1,395 @@
+<?xml version="1.0" encoding="UTF-8"?><process version="10.1.001">
+  <context>
+    <input/>
+    <output/>
+    <macros/>
+  </context>
+  <operator activated="true" class="process" compatibility="10.1.001" expanded="true" name="Process">
+    <parameter key="logverbosity" value="init"/>
+    <parameter key="random_seed" value="2001"/>
+    <parameter key="send_mail" value="never"/>
+    <parameter key="notification_email" value=""/>
+    <parameter key="process_duration_for_mail" value="30"/>
+    <parameter key="encoding" value="SYSTEM"/>
+    <process expanded="true">
+      <operator activated="true" class="subprocess" compatibility="10.1.001" expanded="true" height="187" name="ORIGINAL" width="90" x="45" y="34">
+        <process expanded="true">
+          <operator activated="true" class="subprocess" compatibility="10.1.001" expanded="true" height="187" name="Model" width="90" x="45" y="34">
+            <process expanded="true">
+              <operator activated="true" class="retrieve" compatibility="10.1.001" expanded="true" height="68" name="Dataset 1 [TRAIN] (8)" width="90" x="45" y="34">
+                <parameter key="repository_entry" value="excels/Training Dataset - Updated"/>
+              </operator>
+              <operator activated="true" class="subprocess" compatibility="10.1.001" expanded="true" height="82" name="Data Preprocessing (14)" width="90" x="179" y="34">
+                <process expanded="true">
+                  <operator activated="false" class="detect_outlier_distances" compatibility="10.1.001" expanded="true" height="82" name="Detect Outlier (Distances) (6)" width="90" x="380" y="391">
+                    <parameter key="number_of_neighbors" value="10"/>
+                    <parameter key="number_of_outliers" value="10"/>
+                    <parameter key="distance_function" value="euclidian distance"/>
+                  </operator>
+                  <operator activated="false" class="python_scripting:execute_python" compatibility="10.0.000" expanded="true" height="82" name="Hot-deck (5)" width="90" x="246" y="391">
+                    <parameter key="script" value="def rm_main(data):&#10;    # Read the input CSV file&#10;    &#10;    df = data&#10;&#10;    # Calculate the average values for each column based on &quot;Pass&quot; or &quot;Fail&quot; status&#10;    pass_avg = df[df['pass_bar'] == 1].mean()&#10;    fail_avg = df[df['pass_bar'] == 0].mean()&#10;&#10;    # Impute missing values with the corresponding average based on &quot;Pass&quot; or &quot;Fail&quot; status&#10;    df.loc[df['pass_bar'] == 1] = df.loc[df['pass_bar'] == 1].fillna(pass_avg)&#10;    df.loc[df['pass_bar'] == 0] = df.loc[df['pass_bar'] == 0].fillna(fail_avg)&#10;&#10;    # Save the imputed data to a new CSV file&#10;    # output_file = 'imputed.csv'&#10;    # df.to_csv(output_file, index=False)&#10;    return df"/>
+                    <parameter key="notebook_cell_tag_filter" value=""/>
+                    <parameter key="use_default_python" value="true"/>
+                    <parameter key="package_manager" value="conda (anaconda)"/>
+                    <parameter key="use_macros" value="false"/>
+                  </operator>
+                  <operator activated="false" class="remove_duplicates" compatibility="10.1.001" expanded="true" height="103" name="Remove Duplicates (4)" width="90" x="514" y="391">
+                    <parameter key="attribute_filter_type" value="subset"/>
+                    <parameter key="attribute" value=""/>
+                    <parameter key="attributes" value="decile1|decile1b|decile3|fam_inc|fulltime|parttime|pass_bar|race1|sex|ugpa"/>
+                    <parameter key="use_except_expression" value="false"/>
+                    <parameter key="value_type" value="attribute_value"/>
+                    <parameter key="use_value_type_exception" value="false"/>
+                    <parameter key="except_value_type" value="time"/>
+                    <parameter key="block_type" value="attribute_block"/>
+                    <parameter key="use_block_type_exception" value="false"/>
+                    <parameter key="except_block_type" value="value_matrix_row_start"/>
+                    <parameter key="invert_selection" value="false"/>
+                    <parameter key="include_special_attributes" value="false"/>
+                    <parameter key="treat_missing_values_as_duplicates" value="false"/>
+                  </operator>
+                  <operator activated="false" class="filter_examples" compatibility="10.1.001" expanded="true" height="103" name="Filter Examples (5)" width="90" x="313" y="442">
+                    <parameter key="parameter_expression" value=""/>
+                    <parameter key="condition_class" value="custom_filters"/>
+                    <parameter key="invert_filter" value="false"/>
+                    <list key="filters_list"/>
+                    <parameter key="filters_logic_and" value="true"/>
+                    <parameter key="filters_check_metadata" value="true"/>
+                  </operator>
+                  <operator activated="false" class="filter_examples" compatibility="10.1.001" expanded="true" height="103" name="Pick only Asian American (3)" width="90" x="447" y="442">
+                    <parameter key="parameter_expression" value=""/>
+                    <parameter key="condition_class" value="custom_filters"/>
+                    <parameter key="invert_filter" value="false"/>
+                    <list key="filters_list">
+                      <parameter key="filters_entry_key" value="race1.eq.1"/>
+                      <parameter key="filters_entry_key" value="race1.eq.0"/>
+                    </list>
+                    <parameter key="filters_logic_and" value="true"/>
+                    <parameter key="filters_check_metadata" value="true"/>
+                  </operator>
+                  <operator activated="false" class="operator_toolbox:smote" compatibility="2.16.000" expanded="true" height="82" name="SMOTE Upsampling (13)" width="90" x="581" y="442">
+                    <parameter key="number_of_neighbours" value="3"/>
+                    <parameter key="normalize" value="false"/>
+                    <parameter key="equalize_classes" value="false"/>
+                    <parameter key="upsampling_size" value="100"/>
+                    <parameter key="auto_detect_minority_class" value="true"/>
+                    <parameter key="round_integers" value="true"/>
+                    <parameter key="nominal_change_rate" value="0.5"/>
+                    <parameter key="use_local_random_seed" value="false"/>
+                    <parameter key="local_random_seed" value="1992"/>
+                  </operator>
+                  <operator activated="true" class="filter_examples" compatibility="10.1.001" expanded="true" height="103" name="Remove Outlier" width="90" x="45" y="34">
+                    <parameter key="parameter_expression" value=""/>
+                    <parameter key="condition_class" value="custom_filters"/>
+                    <parameter key="invert_filter" value="true"/>
+                    <list key="filters_list">
+                      <parameter key="filters_entry_key" value="rank_decile1.gt.10\.0"/>
+                      <parameter key="filters_entry_key" value="rank_decile2.gt.10\.0"/>
+                      <parameter key="filters_entry_key" value="rank_decile3.gt.10\.0"/>
+                      <parameter key="filters_entry_key" value="rank_decile1.lt.1\.0"/>
+                      <parameter key="filters_entry_key" value="rank_decile2.lt.1\.0"/>
+                      <parameter key="filters_entry_key" value="rank_decile3.lt.1\.0"/>
+                      <parameter key="filters_entry_key" value="ugpa.gt.4\.0"/>
+                      <parameter key="filters_entry_key" value="ugpa.lt.1"/>
+                      <parameter key="filters_entry_key" value="parttime.gt.1\.0"/>
+                      <parameter key="filters_entry_key" value="parttime.lt.0\.0"/>
+                      <parameter key="filters_entry_key" value="pass_bar.gt.1\.0"/>
+                      <parameter key="filters_entry_key" value="pass_bar.lt.0\.0"/>
+                      <parameter key="filters_entry_key" value="ses.gt.5\.0"/>
+                      <parameter key="filters_entry_key" value="ses.lt.1\.0"/>
+                    </list>
+                    <parameter key="filters_logic_and" value="false"/>
+                    <parameter key="filters_check_metadata" value="true"/>
+                  </operator>
+                  <operator activated="true" class="subprocess" compatibility="10.1.001" expanded="true" height="82" name="Python Preprocess (7)" width="90" x="179" y="34">
+                    <process expanded="true">
+                      <operator activated="true" class="python_scripting:execute_python" compatibility="10.0.000" expanded="true" height="103" name="KNN Imputation (9)" width="90" x="45" y="34">
+                        <parameter key="script" value="# import necessary libraries&#10;import numpy as np&#10;import pandas as pd&#10;&#10;# import the KNNimputer class&#10;from sklearn.impute import KNNImputer&#10;&#10;def rm_main(data):&#10;    if len(data) &lt;= 14:&#10;        return data&#10;    &#10;&#10;    # creating a data frame from the list&#10;    Before_imputation = pd.DataFrame(data)&#10;&#10;    # Get the column headers before imputation&#10;    column_headers = Before_imputation.columns&#10;&#10;    # create an object for KNNImputer&#10;    imputer = KNNImputer(n_neighbors=5)&#10;    After_imputation = imputer.fit_transform(Before_imputation)&#10;    &#10;    # Round the imputed values to whole numbers&#10;    After_imputation = np.ceil(After_imputation)&#10;&#10;    # Create a new DataFrame with imputed values and original column headers&#10;    After_imputation_df = pd.DataFrame(After_imputation, columns=column_headers)&#10;    return After_imputation_df"/>
+                        <parameter key="notebook_cell_tag_filter" value=""/>
+                        <parameter key="use_default_python" value="true"/>
+                        <parameter key="package_manager" value="virtualenvwrapper"/>
+                        <parameter key="use_macros" value="false"/>
+                      </operator>
+                      <operator activated="true" class="python_scripting:execute_python" compatibility="10.0.000" expanded="true" height="103" name="Standard Deviation (9)" width="90" x="179" y="34">
+                        <parameter key="script" value="# import necessary libraries&#10;import pandas as pd&#10;from scipy import stats&#10;&#10;&#10;def rm_main(data):&#10;    if len(data) &lt; 30:&#10;        return data&#10;    # Make dataset a data frame&#10;    data = pd.DataFrame(data)&#10;    # get the headers&#10;    column_headers = data.columns&#10;    # Define the columns you want to normalize&#10;    columns_to_normalize = ['ugpa', 'rank_decile1', 'rank_decile2', 'rank_decile3']&#10;    # Create a copy of the data to work on&#10;    df_z_scaled = data.copy()&#10;&#10;    # Apply normalization technique to the selected columns&#10;    df_z_scaled[columns_to_normalize] = df_z_scaled[columns_to_normalize].apply(stats.zscore)&#10;    df_z_scaled = pd.DataFrame(df_z_scaled, columns=column_headers)&#10;    return df_z_scaled&#10;"/>
+                        <parameter key="notebook_cell_tag_filter" value=""/>
+                        <parameter key="use_default_python" value="true"/>
+                        <parameter key="package_manager" value="virtualenvwrapper"/>
+                        <parameter key="use_macros" value="false"/>
+                      </operator>
+                      <connect from_port="in 1" to_op="KNN Imputation (9)" to_port="input 1"/>
+                      <connect from_op="KNN Imputation (9)" from_port="output 1" to_op="Standard Deviation (9)" to_port="input 1"/>
+                      <connect from_op="Standard Deviation (9)" from_port="output 1" to_port="out 1"/>
+                      <portSpacing port="source_in 1" spacing="0"/>
+                      <portSpacing port="source_in 2" spacing="0"/>
+                      <portSpacing port="sink_out 1" spacing="0"/>
+                      <portSpacing port="sink_out 2" spacing="0"/>
+                    </process>
+                  </operator>
+                  <operator activated="true" class="numerical_to_binominal" compatibility="10.1.001" expanded="true" height="82" name="Numerical to Binominal (16)" width="90" x="313" y="34">
+                    <parameter key="attribute_filter_type" value="single"/>
+                    <parameter key="attribute" value="pass_bar"/>
+                    <parameter key="attributes" value="pass"/>
+                    <parameter key="use_except_expression" value="false"/>
+                    <parameter key="value_type" value="numeric"/>
+                    <parameter key="use_value_type_exception" value="false"/>
+                    <parameter key="except_value_type" value="real"/>
+                    <parameter key="block_type" value="value_series"/>
+                    <parameter key="use_block_type_exception" value="false"/>
+                    <parameter key="except_block_type" value="value_series_end"/>
+                    <parameter key="invert_selection" value="false"/>
+                    <parameter key="include_special_attributes" value="true"/>
+                    <parameter key="min" value="0.0"/>
+                    <parameter key="max" value="0.0"/>
+                  </operator>
+                  <operator activated="true" class="blending:select_attributes" compatibility="10.1.001" expanded="true" height="82" name="Select Attributes (15)" width="90" x="447" y="34">
+                    <parameter key="type" value="include attributes"/>
+                    <parameter key="attribute_filter_type" value="a subset"/>
+                    <parameter key="select_attribute" value=""/>
+                    <parameter key="select_subset" value="parttime␞pass_bar␞rank_decile1␞rank_decile2␞rank_decile3␞ses␞ugpa"/>
+                    <parameter key="also_apply_to_special_attributes_(id,_label..)" value="true"/>
+                  </operator>
+                  <operator activated="true" class="blending:set_role" compatibility="10.1.001" expanded="true" height="82" name="Set Role (16)" width="90" x="581" y="34">
+                    <list key="set_roles">
+                      <parameter key="pass_bar" value="label"/>
+                    </list>
+                  </operator>
+                  <operator activated="true" class="operator_toolbox:smote" compatibility="2.16.000" expanded="true" height="82" name="SMOTE Upsampling" width="90" x="715" y="34">
+                    <parameter key="number_of_neighbours" value="5"/>
+                    <parameter key="normalize" value="true"/>
+                    <parameter key="equalize_classes" value="false"/>
+                    <parameter key="upsampling_size" value="1000"/>
+                    <parameter key="auto_detect_minority_class" value="true"/>
+                    <parameter key="round_integers" value="false"/>
+                    <parameter key="nominal_change_rate" value="0.5"/>
+                    <parameter key="use_local_random_seed" value="false"/>
+                    <parameter key="local_random_seed" value="1992"/>
+                  </operator>
+                  <connect from_port="in 1" to_op="Remove Outlier" to_port="example set input"/>
+                  <connect from_op="Remove Outlier" from_port="example set output" to_op="Python Preprocess (7)" to_port="in 1"/>
+                  <connect from_op="Python Preprocess (7)" from_port="out 1" to_op="Numerical to Binominal (16)" to_port="example set input"/>
+                  <connect from_op="Numerical to Binominal (16)" from_port="example set output" to_op="Select Attributes (15)" to_port="example set input"/>
+                  <connect from_op="Select Attributes (15)" from_port="example set output" to_op="Set Role (16)" to_port="example set input"/>
+                  <connect from_op="Set Role (16)" from_port="example set output" to_op="SMOTE Upsampling" to_port="exa"/>
+                  <connect from_op="SMOTE Upsampling" from_port="ups" to_port="out 1"/>
+                  <portSpacing port="source_in 1" spacing="0"/>
+                  <portSpacing port="source_in 2" spacing="0"/>
+                  <portSpacing port="sink_out 1" spacing="0"/>
+                  <portSpacing port="sink_out 2" spacing="0"/>
+                </process>
+              </operator>
+              <operator activated="true" class="concurrency:optimize_parameters_grid" compatibility="10.1.001" expanded="true" height="166" name="Optimize Parameters (Grid) (9)" width="90" x="313" y="34">
+                <list key="parameters">
+                  <parameter key="Model (8).number_of_trees" value="[10;100;5;linear]"/>
+                  <parameter key="Model (8).subset_ratio" value="[0.10;1.0;5;linear]"/>
+                  <parameter key="Model (8).minimal_size_for_split" value="[1;100;5;linear]"/>
+                  <parameter key="Sample (Bootstrapping) (4).sample_ratio" value="[0.1;1.0;5;linear]"/>
+                  <parameter key="Cross Validation (9).number_of_folds" value="[5;10;2;linear]"/>
+                  <parameter key="Model (8).maximal_depth" value="[100;1000.0;5;linear]"/>
+                </list>
+                <parameter key="error_handling" value="ignore error"/>
+                <parameter key="log_performance" value="true"/>
+                <parameter key="log_all_criteria" value="true"/>
+                <parameter key="synchronize" value="false"/>
+                <parameter key="enable_parallel_execution" value="true"/>
+                <process expanded="true">
+                  <operator activated="true" class="concurrency:cross_validation" compatibility="10.1.001" expanded="true" height="145" name="Cross Validation (9)" width="90" x="112" y="34">
+                    <parameter key="split_on_batch_attribute" value="false"/>
+                    <parameter key="leave_one_out" value="false"/>
+                    <parameter key="number_of_folds" value="10"/>
+                    <parameter key="sampling_type" value="stratified sampling"/>
+                    <parameter key="use_local_random_seed" value="false"/>
+                    <parameter key="local_random_seed" value="1992"/>
+                    <parameter key="enable_parallel_execution" value="true"/>
+                    <process expanded="true">
+                      <operator activated="true" class="sample_bootstrapping" compatibility="10.1.001" expanded="true" height="82" name="Sample (Bootstrapping) (4)" width="90" x="45" y="34">
+                        <parameter key="sample" value="relative"/>
+                        <parameter key="sample_size" value="100"/>
+                        <parameter key="sample_ratio" value="1.0"/>
+                        <parameter key="use_weights" value="true"/>
+                        <parameter key="use_local_random_seed" value="false"/>
+                        <parameter key="local_random_seed" value="1992"/>
+                      </operator>
+                      <operator activated="true" class="concurrency:parallel_random_forest" compatibility="10.1.001" expanded="true" height="103" name="Model (8)" origin="EXPORTED_AUTOMODEL" width="90" x="179" y="34">
+                        <parameter key="number_of_trees" value="100"/>
+                        <parameter key="criterion" value="gini_index"/>
+                        <parameter key="maximal_depth" value="10"/>
+                        <parameter key="apply_pruning" value="false"/>
+                        <parameter key="confidence" value="0.1"/>
+                        <parameter key="apply_prepruning" value="true"/>
+                        <parameter key="minimal_gain" value="0.01"/>
+                        <parameter key="minimal_leaf_size" value="1"/>
+                        <parameter key="minimal_size_for_split" value="4"/>
+                        <parameter key="number_of_prepruning_alternatives" value="3"/>
+                        <parameter key="random_splits" value="false"/>
+                        <parameter key="guess_subset_ratio" value="true"/>
+                        <parameter key="subset_ratio" value="0.2"/>
+                        <parameter key="voting_strategy" value="confidence vote"/>
+                        <parameter key="use_local_random_seed" value="false"/>
+                        <parameter key="local_random_seed" value="1992"/>
+                        <parameter key="enable_parallel_execution" value="true"/>
+                        <description align="center" color="transparent" colored="false" width="126">Train model.</description>
+                      </operator>
+                      <operator activated="true" class="weight_by_forest" compatibility="10.1.001" expanded="true" height="82" name="Weight by Tree Importance (8)" width="90" x="313" y="34">
+                        <parameter key="criterion" value="gain_ratio"/>
+                        <parameter key="normalize_weights" value="true"/>
+                      </operator>
+                      <operator activated="true" class="remember" compatibility="10.1.001" expanded="true" height="68" name="Remember (8)" width="90" x="447" y="34">
+                        <parameter key="name" value="weight"/>
+                        <parameter key="io_object" value="AttributeWeights"/>
+                        <parameter key="store_which" value="1"/>
+                        <parameter key="remove_from_process" value="true"/>
+                      </operator>
+                      <connect from_port="training set" to_op="Sample (Bootstrapping) (4)" to_port="example set input"/>
+                      <connect from_op="Sample (Bootstrapping) (4)" from_port="example set output" to_op="Model (8)" to_port="training set"/>
+                      <connect from_op="Model (8)" from_port="model" to_op="Weight by Tree Importance (8)" to_port="random forest"/>
+                      <connect from_op="Model (8)" from_port="exampleSet" to_port="through 1"/>
+                      <connect from_op="Weight by Tree Importance (8)" from_port="weights" to_op="Remember (8)" to_port="store"/>
+                      <connect from_op="Weight by Tree Importance (8)" from_port="random forest" to_port="model"/>
+                      <portSpacing port="source_training set" spacing="0"/>
+                      <portSpacing port="sink_model" spacing="0"/>
+                      <portSpacing port="sink_through 1" spacing="0"/>
+                      <portSpacing port="sink_through 2" spacing="0"/>
+                    </process>
+                    <process expanded="true">
+                      <operator activated="true" class="apply_model" compatibility="10.1.001" expanded="true" height="82" name="Apply Model (16)" width="90" x="45" y="34">
+                        <list key="application_parameters"/>
+                      </operator>
+                      <operator activated="true" class="performance_binominal_classification" compatibility="10.1.001" expanded="true" height="82" name="Performance (10)" width="90" x="179" y="34">
+                        <parameter key="manually_set_positive_class" value="true"/>
+                        <parameter key="positive_class" value="true"/>
+                        <parameter key="main_criterion" value="accuracy"/>
+                        <parameter key="accuracy" value="true"/>
+                        <parameter key="classification_error" value="true"/>
+                        <parameter key="kappa" value="true"/>
+                        <parameter key="AUC (optimistic)" value="true"/>
+                        <parameter key="AUC" value="true"/>
+                        <parameter key="AUC (pessimistic)" value="true"/>
+                        <parameter key="precision" value="true"/>
+                        <parameter key="recall" value="true"/>
+                        <parameter key="lift" value="true"/>
+                        <parameter key="fallout" value="true"/>
+                        <parameter key="f_measure" value="true"/>
+                        <parameter key="false_positive" value="true"/>
+                        <parameter key="false_negative" value="true"/>
+                        <parameter key="true_positive" value="true"/>
+                        <parameter key="true_negative" value="true"/>
+                        <parameter key="sensitivity" value="true"/>
+                        <parameter key="specificity" value="true"/>
+                        <parameter key="youden" value="true"/>
+                        <parameter key="positive_predictive_value" value="true"/>
+                        <parameter key="negative_predictive_value" value="true"/>
+                        <parameter key="psep" value="true"/>
+                        <parameter key="skip_undefined_labels" value="true"/>
+                        <parameter key="use_example_weights" value="true"/>
+                      </operator>
+                      <connect from_port="model" to_op="Apply Model (16)" to_port="model"/>
+                      <connect from_port="test set" to_op="Apply Model (16)" to_port="unlabelled data"/>
+                      <connect from_op="Apply Model (16)" from_port="labelled data" to_op="Performance (10)" to_port="labelled data"/>
+                      <connect from_op="Performance (10)" from_port="performance" to_port="performance 1"/>
+                      <connect from_op="Performance (10)" from_port="example set" to_port="test set results"/>
+                      <portSpacing port="source_model" spacing="0"/>
+                      <portSpacing port="source_test set" spacing="0"/>
+                      <portSpacing port="source_through 1" spacing="0"/>
+                      <portSpacing port="source_through 2" spacing="0"/>
+                      <portSpacing port="sink_test set results" spacing="0"/>
+                      <portSpacing port="sink_performance 1" spacing="0"/>
+                      <portSpacing port="sink_performance 2" spacing="0"/>
+                    </process>
+                    <description align="center" color="transparent" colored="false" width="126">uses stratified sampling</description>
+                  </operator>
+                  <connect from_port="input 1" to_op="Cross Validation (9)" to_port="example set"/>
+                  <connect from_op="Cross Validation (9)" from_port="model" to_port="model"/>
+                  <connect from_op="Cross Validation (9)" from_port="example set" to_port="output 1"/>
+                  <connect from_op="Cross Validation (9)" from_port="test result set" to_port="output 2"/>
+                  <connect from_op="Cross Validation (9)" from_port="performance 1" to_port="performance"/>
+                  <portSpacing port="source_input 1" spacing="0"/>
+                  <portSpacing port="source_input 2" spacing="0"/>
+                  <portSpacing port="sink_performance" spacing="0"/>
+                  <portSpacing port="sink_model" spacing="0"/>
+                  <portSpacing port="sink_output 1" spacing="0"/>
+                  <portSpacing port="sink_output 2" spacing="0"/>
+                  <portSpacing port="sink_output 3" spacing="0"/>
+                </process>
+              </operator>
+              <operator activated="true" class="recall" compatibility="10.1.001" expanded="true" height="68" name="Recall" width="90" x="313" y="340">
+                <parameter key="name" value="weight"/>
+                <parameter key="io_object" value="AttributeWeights"/>
+                <parameter key="remove_from_store" value="true"/>
+              </operator>
+              <operator activated="true" class="store" compatibility="10.1.001" expanded="true" height="68" name="Model (9)" width="90" x="514" y="85">
+                <parameter key="repository_entry" value="models/model"/>
+              </operator>
+              <operator activated="true" class="store" compatibility="10.1.001" expanded="true" height="68" name="Performance (11)" width="90" x="514" y="34">
+                <parameter key="repository_entry" value="models/performance"/>
+              </operator>
+              <operator activated="true" class="store" compatibility="10.1.001" expanded="true" height="68" name="Parameter Set" width="90" x="514" y="136">
+                <parameter key="repository_entry" value="models/parameterset"/>
+              </operator>
+              <operator activated="true" class="store" compatibility="10.1.001" expanded="true" height="68" name="Output1" width="90" x="514" y="187">
+                <parameter key="repository_entry" value="models/optimize_parameters(output1)"/>
+              </operator>
+              <operator activated="true" class="store" compatibility="10.1.001" expanded="true" height="68" name="Output2" width="90" x="514" y="238">
+                <parameter key="repository_entry" value="models/optimize_parameters(output2)"/>
+              </operator>
+              <operator activated="true" class="store" compatibility="10.1.001" expanded="true" height="68" name="Store" width="90" x="514" y="340">
+                <parameter key="repository_entry" value="models/weights"/>
+              </operator>
+              <connect from_op="Dataset 1 [TRAIN] (8)" from_port="output" to_op="Data Preprocessing (14)" to_port="in 1"/>
+              <connect from_op="Data Preprocessing (14)" from_port="out 1" to_op="Optimize Parameters (Grid) (9)" to_port="input 1"/>
+              <connect from_op="Optimize Parameters (Grid) (9)" from_port="performance" to_op="Performance (11)" to_port="input"/>
+              <connect from_op="Optimize Parameters (Grid) (9)" from_port="model" to_op="Model (9)" to_port="input"/>
+              <connect from_op="Optimize Parameters (Grid) (9)" from_port="parameter set" to_op="Parameter Set" to_port="input"/>
+              <connect from_op="Optimize Parameters (Grid) (9)" from_port="output 1" to_op="Output1" to_port="input"/>
+              <connect from_op="Optimize Parameters (Grid) (9)" from_port="output 2" to_op="Output2" to_port="input"/>
+              <connect from_op="Recall" from_port="result" to_op="Store" to_port="input"/>
+              <connect from_op="Model (9)" from_port="through" to_port="out 2"/>
+              <connect from_op="Performance (11)" from_port="through" to_port="out 1"/>
+              <connect from_op="Parameter Set" from_port="through" to_port="out 3"/>
+              <connect from_op="Output1" from_port="through" to_port="out 4"/>
+              <connect from_op="Output2" from_port="through" to_port="out 5"/>
+              <connect from_op="Store" from_port="through" to_port="out 6"/>
+              <portSpacing port="source_in 1" spacing="0"/>
+              <portSpacing port="sink_out 1" spacing="0"/>
+              <portSpacing port="sink_out 2" spacing="0"/>
+              <portSpacing port="sink_out 3" spacing="0"/>
+              <portSpacing port="sink_out 4" spacing="0"/>
+              <portSpacing port="sink_out 5" spacing="0"/>
+              <portSpacing port="sink_out 6" spacing="0"/>
+              <portSpacing port="sink_out 7" spacing="0"/>
+            </process>
+            <description align="center" color="transparent" colored="false" width="126"/>
+          </operator>
+          <connect from_op="Model" from_port="out 1" to_port="out 1"/>
+          <connect from_op="Model" from_port="out 2" to_port="out 2"/>
+          <connect from_op="Model" from_port="out 3" to_port="out 3"/>
+          <connect from_op="Model" from_port="out 4" to_port="out 4"/>
+          <connect from_op="Model" from_port="out 5" to_port="out 5"/>
+          <connect from_op="Model" from_port="out 6" to_port="out 6"/>
+          <portSpacing port="source_in 1" spacing="0"/>
+          <portSpacing port="sink_out 1" spacing="0"/>
+          <portSpacing port="sink_out 2" spacing="0"/>
+          <portSpacing port="sink_out 3" spacing="0"/>
+          <portSpacing port="sink_out 4" spacing="0"/>
+          <portSpacing port="sink_out 5" spacing="0"/>
+          <portSpacing port="sink_out 6" spacing="0"/>
+          <portSpacing port="sink_out 7" spacing="0"/>
+        </process>
+      </operator>
+      <connect from_op="ORIGINAL" from_port="out 1" to_port="result 1"/>
+      <connect from_op="ORIGINAL" from_port="out 2" to_port="result 2"/>
+      <connect from_op="ORIGINAL" from_port="out 3" to_port="result 3"/>
+      <connect from_op="ORIGINAL" from_port="out 4" to_port="result 4"/>
+      <connect from_op="ORIGINAL" from_port="out 5" to_port="result 5"/>
+      <connect from_op="ORIGINAL" from_port="out 6" to_port="result 6"/>
+      <portSpacing port="source_input 1" spacing="0"/>
+      <portSpacing port="sink_result 1" spacing="0"/>
+      <portSpacing port="sink_result 2" spacing="0"/>
+      <portSpacing port="sink_result 3" spacing="0"/>
+      <portSpacing port="sink_result 4" spacing="0"/>
+      <portSpacing port="sink_result 5" spacing="0"/>
+      <portSpacing port="sink_result 6" spacing="0"/>
+      <portSpacing port="sink_result 7" spacing="0"/>
+    </process>
+  </operator>
+</process>
